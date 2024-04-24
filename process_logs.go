@@ -37,6 +37,9 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", string(lp.Header().PrivalVersion), mytimeBucket, string(lp.Header().Hostname), string(lp.Header().Name), string(lp.Header().Procid), string(lp.Header().Msgid))
 
 		if string(lp.Header().Procid) == "heroku-postgres" {
+
+			fmt.Printf("[processLogs] heroku-postgres msg body[%v]\n", string(lp.Bytes()))
+
 			rl := new(routerLog)
 			if err := logfmt.Unmarshal(lp.Bytes(), rl); err != nil {
 				fmt.Printf("Error parsing log line: %v\n", err)
