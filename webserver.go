@@ -25,7 +25,7 @@ func checkAuth(correctPass string, pass http.HandlerFunc) http.HandlerFunc {
 		_, password, ok := r.BasicAuth()
 
 		if !ok {
-			http.Error(w, "authtorization required", http.StatusBadRequest)
+			http.Error(w, "authorization required", http.StatusBadRequest)
 			return
 		}
 
