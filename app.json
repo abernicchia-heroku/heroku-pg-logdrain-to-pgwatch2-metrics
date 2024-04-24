@@ -1,0 +1,21 @@
+{
+	"name": "Heroku Postgres Log to pgwatch2 metrics App",
+	"description": "A Go app that receives and process Heroku Postgres logs and convert metrics into pgwatc2 metrics",
+    "keywords": [
+        "pgwatch2",
+        "logplex",
+        "heroku"
+      ],
+    "repository": "https://github.com/abernicchia-heroku/heroku-pg-logdrain-to-pgwatch2-metrics",
+	"env": {
+		"AUTH_SECRET": {
+			"description": "protects from unauthorized log messages",
+			"generator": "secret"
+		}
+	},
+    "buildpacks": [
+        {
+          "url": "heroku/go"
+        }  
+      ]
+}
