@@ -34,7 +34,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 	for lp.Next() {
 		// we only care about logs from the heroku router
 		mytimeBucket, _ := timestamp2Bucket(lp.Header().Time)
-		fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", lp.Header().PrivalVersion, mytimeBucket, lp.Header().Hostname, lp.Header().Name, lp.Header().Procid, lp.Header().Msgid)
+		fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", string(lp.Header().PrivalVersion), mytimeBucket, string(lp.Header().Hostname), string(lp.Header().Name), string(lp.Header().Procid), string(lp.Header().Msgid))
 
 		if string(lp.Header().Procid) == "heroku-postgres" {
 			rl := new(routerLog)
