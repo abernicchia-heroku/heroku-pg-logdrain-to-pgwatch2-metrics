@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +12,9 @@ import (
 	"github.com/bmizerany/lpx"
 	"github.com/kr/logfmt"
 )
+
+const DebugEnvVar string = "HKPG_LOGDRAIN_DEBUG"
+const PostgresProcId string = "heroku-postgres"
 
 // This struct and the method below takes care of capturing the data we need
 // from each log line. We pass it to Keith Rarick's logfmt parser and it
@@ -76,16 +80,21 @@ func (r *herokuPostgresLog) HandleLogfmt(key, val []byte) error {
 // This is called every time we receive log lines from an app
 func processLogs(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Printf("[processLogs] HTTP request received\n")
+	if isEnvExist(DebugEnvVar) {
+		fmt.Printf("[processLogs] HTTP request received\n")
+	}
 
 	lp := lpx.NewReader(bufio.NewReader(r.Body))
 	// a single request may contain multiple log lines. Loop over each of them
 	for lp.Next() {
 		// we only care about logs from the heroku-postgres
 		mytimeBucket, _ := timestamp2Bucket(lp.Header().Time)
-		fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", string(lp.Header().PrivalVersion), mytimeBucket, string(lp.Header().Hostname), string(lp.Header().Name), string(lp.Header().Procid), string(lp.Header().Msgid))
 
-		if string(lp.Header().Procid) == "heroku-postgres" {
+		if isEnvExist(DebugEnvVar) {
+			fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", string(lp.Header().PrivalVersion), mytimeBucket, string(lp.Header().Hostname), string(lp.Header().Name), string(lp.Header().Procid), string(lp.Header().Msgid))
+		}
+
+		if string(lp.Header().Procid) == PostgresProcId {
 
 			fmt.Printf("[processLogs] heroku-postgres msg body[%v]\n", strings.TrimSuffix(string(lp.Bytes()), "\n"))
 
@@ -116,4 +125,11 @@ func timestamp2Bucket(b []byte) (int64, error) {
 		return 0, err
 	}
 	return (t.Unix() / 60) * 60, nil
+}
+
+func isEnvExist(key string) bool {
+	if _, ok := os.LookupEnv(key); ok {
+		return true
+	}
+	return false
 }
