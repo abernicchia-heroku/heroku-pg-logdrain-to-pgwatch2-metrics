@@ -22,6 +22,11 @@ func checkAuth(correctUser string, correctPass string, pass http.HandlerFunc) ht
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		if r.Method != http.MethodPost {
+			http.Error(w, "only POST is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
 		username, password, ok := r.BasicAuth()
 
 		if !ok {
