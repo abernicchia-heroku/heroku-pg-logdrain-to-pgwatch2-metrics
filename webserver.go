@@ -1,6 +1,8 @@
-package main
+// reference(s):
+// https://github.com/jesperfj/heroku-log-drain-sample
+// https://github.com/heroku/sql-drain
 
-// reference: https://github.com/jesperfj/heroku-log-drain-sample
+package main
 
 import (
 	"fmt"

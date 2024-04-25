@@ -1,8 +1,11 @@
 all:
 	go build
 
-deploy: all
+push: all
 	git push -f heroku main
+	heroku logs -t
+
+tail: push
 	heroku logs -t
 
 commit: all
