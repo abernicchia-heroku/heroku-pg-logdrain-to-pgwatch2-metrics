@@ -100,7 +100,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 						continue
 					}*/
 
-				fmt.Printf("time[%v] source[%v] addon[%v] loadavg1m[%v] loadavg5m[%v] loadavg15m[%v] readiops[%v] writeiops[%v] tmpdiskused[%v] tmpdiskavailable[%v] memorytotal[%v] memoryfree[%v] memorycached[%v] memorypostgres[%v] walpercentageused[%v] \n" /*timeBucket*/, lp.Header().Time, rl.source, rl.addon, rl.loadavg1m, rl.loadavg5m, rl.loadavg15m, rl.readiops, rl.writeiops, rl.tmpdiskused, rl.tmpdiskavailable, rl.memorytotal, rl.memoryfree, rl.memorycached, rl.memorypostgres, rl.walpercentageused)
+				fmt.Printf("time[%v] source[%v] addon[%v] loadavg1m[%v] loadavg5m[%v] loadavg15m[%v] readiops[%v] writeiops[%v] tmpdiskused[%v] tmpdiskavailable[%v] memorytotal[%v] memoryfree[%v] memorycached[%v] memorypostgres[%v] walpercentageused[%v] \n" /*timeBucket*/, string(lp.Header().Time), rl.source, rl.addon, rl.loadavg1m, rl.loadavg5m, rl.loadavg15m, rl.readiops, rl.writeiops, rl.tmpdiskused, rl.tmpdiskavailable, rl.memorytotal, rl.memoryfree, rl.memorycached, rl.memorypostgres, rl.walpercentageused)
 			}
 		}
 	}
