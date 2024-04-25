@@ -1,14 +1,13 @@
 all:
 	go build
 
-push: all
+push: commit
 	git push -f heroku main
-	heroku logs -t
 
 tail: push
 	heroku logs -t
 
-commit: all
+commit:
 	git add . && git commit -m "logdrain messages handling"
 
 createschema:
