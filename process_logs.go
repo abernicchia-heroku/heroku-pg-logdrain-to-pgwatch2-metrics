@@ -99,7 +99,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 		if string(lp.Header().Procid) == "heroku-postgres" {
 
-			fmt.Printf("[processLogs] heroku-postgres msg body[%v]\n", string(lp.Bytes()))
+			fmt.Printf("[processLogs] heroku-postgres msg body[%v]\n", strings.TrimSuffix(string(lp.Bytes()), "\n"))
 
 			rl := new(herokuPostgresLog)
 			if err := logfmt.Unmarshal(lp.Bytes(), rl); err != nil {
