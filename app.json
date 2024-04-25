@@ -8,8 +8,12 @@
       ],
     "repository": "https://github.com/abernicchia-heroku/heroku-pg-logdrain-to-pgwatch2-metrics",
 	"env": {
-		"AUTH_SECRET": {
-			"description": "protects from unauthorized log messages",
+		"AUTH_USER": {
+			"description": "logdrain user - protects from unauthorized log messages",
+			"generator": "secret"
+		},
+    "AUTH_SECRET": {
+			"description": "logdrain secret - protects from unauthorized log messages",
 			"generator": "secret"
 		}
 	},

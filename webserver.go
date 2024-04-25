@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	http.HandleFunc("/log", checkAuth(os.Getenv("AUTH_SECRET"), processLogs))
+	http.HandleFunc("/log", checkAuth(os.Getenv("AUTH_USER"), os.Getenv("AUTH_SECRET"), processLogs))
 	fmt.Println("listening...")
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
@@ -18,18 +18,18 @@ func main() {
 	}
 }
 
-func checkAuth(correctPass string, pass http.HandlerFunc) http.HandlerFunc {
+func checkAuth(correctUser string, correctPass string, pass http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		_, password, ok := r.BasicAuth()
+		username, password, ok := r.BasicAuth()
 
 		if !ok {
 			http.Error(w, "authorization required", http.StatusBadRequest)
 			return
 		}
 
-		if password != correctPass {
+		if (username != correctUser) || (password != correctPass) {
 			http.Error(w, "authorization failed", http.StatusUnauthorized)
 			return
 		}
