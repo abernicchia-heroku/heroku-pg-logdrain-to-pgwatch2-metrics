@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bmizerany/lpx"
@@ -66,14 +67,14 @@ func (r *herokuPostgresLog) HandleLogfmt(key, val []byte) error {
 		r.tmpdiskused, _ = strconv.ParseInt(string(val), 10, 64)
 	} else if string(key) == "sample#tmp-disk-available" {
 		r.tmpdiskavailable, _ = strconv.ParseInt(string(val), 10, 64)
-	} else if string(key) == "sample#memory-total" {
-		r.memorytotal, _ = strconv.ParseInt(string(val), 10, 64)
-	} else if string(key) == "sample#memory-free" {
-		r.memoryfree, _ = strconv.ParseInt(string(val), 10, 64)
-	} else if string(key) == "sample#memory-cached" {
-		r.memorycached, _ = strconv.ParseInt(string(val), 10, 64)
-	} else if string(key) == "sample#memory-postgres" {
-		r.memorypostgres, _ = strconv.ParseInt(string(val), 10, 64)
+	} else if string(key) == "sample#memory-total" { // kB
+		r.memorytotal, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+	} else if string(key) == "sample#memory-free" { // kB
+		r.memoryfree, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+	} else if string(key) == "sample#memory-cached" { // kB
+		r.memorycached, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+	} else if string(key) == "sample#memory-postgres" { // kB
+		r.memorypostgres, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
 	} else if string(key) == "sample#wal-percentage-used" {
 		r.walpercentageused, _ = strconv.ParseFloat(string(val), 64)
 	}
