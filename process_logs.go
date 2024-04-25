@@ -68,13 +68,13 @@ func (r *herokuPostgresLog) HandleLogfmt(key, val []byte) error {
 	} else if string(key) == "sample#tmp-disk-available" {
 		r.tmpdiskavailable, _ = strconv.ParseInt(string(val), 10, 64)
 	} else if string(key) == "sample#memory-total" { // kB
-		r.memorytotal, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+		r.memorytotal, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
 	} else if string(key) == "sample#memory-free" { // kB
-		r.memoryfree, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+		r.memoryfree, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
 	} else if string(key) == "sample#memory-cached" { // kB
-		r.memorycached, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+		r.memorycached, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
 	} else if string(key) == "sample#memory-postgres" { // kB
-		r.memorypostgres, _ = strconv.ParseInt(strings.TrimPrefix(string(val), "kB"), 10, 64)
+		r.memorypostgres, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
 	} else if string(key) == "sample#wal-percentage-used" {
 		r.walpercentageused, _ = strconv.ParseFloat(string(val), 64)
 	}
