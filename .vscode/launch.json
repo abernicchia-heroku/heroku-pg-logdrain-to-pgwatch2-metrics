@@ -13,7 +13,11 @@
             "env": {
                 "PGWATCH2_URL":"postgres://pgwatch2:pa57e6556586bb8237a2ad78a01db797d82218c66204b658fe725af030e1fae61@ec2-52-207-70-55.compute-1.amazonaws.com:5432/df6un75kac4kvr",
                 "SOURCES":"{\"DATABASE\": \"PGWATCH2_MONITOREDDB_MYTARGETDB_URL\", \"DATABASE_ONYX\": \"PGWATCH2_MONITOREDDB_2_URL\", \"DATABASE_GREEN\": \"PGWATCH2_MONITOREDDB_3_URL\"}",
-                "HKPG_LOGDRAIN_DEBUG":"1"                
+                "HKPG_LOGDRAIN_DEBUG":"1",
+                "PORT":"8080",
+                "AUTH_USER":"u",
+                "AUTH_SECRET":"p",
+                "HKPG_LOGDRAIN_DEBUG":"1"
             }
         }
     ]

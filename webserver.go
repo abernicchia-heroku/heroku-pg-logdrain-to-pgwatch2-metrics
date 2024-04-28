@@ -10,6 +10,9 @@ import (
 	"os"
 )
 
+// POST sample
+// curl -u u:p -d "672 <134>1 2024-04-28T00:03:49+00:00 host app heroku-postgres - source=DATABASE addon=postgresql-defined-24903 sample#current_transaction=122163235 sample#db_size=90755887bytes sample#tables=4 sample#active-connections=15 sample#waiting-connections=0 sample#index-cache-hit-rate=0.99997 sample#table-cache-hit-rate=0.99922 sample#load-avg-1m=0.285 sample#load-avg-5m=0.345 sample#load-avg-15m=0.39 sample#read-iops=0 sample#write-iops=2.597 sample#tmp-disk-used=543633408 sample#tmp-disk-available=72435159040 sample#memory-total=3944484kB sample#memory-free=74980kB sample#memory-cached=2984436kB sample#memory-postgres=33960kB sample#wal-percentage-used=0.06650439708481809" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:8080/log
+
 const AuthUserEnv string = "AUTH_USER"
 const AuthSecretEnv string = "AUTH_SECRET"
 const PortEnv string = "PORT"

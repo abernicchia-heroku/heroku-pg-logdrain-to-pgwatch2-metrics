@@ -82,6 +82,8 @@ type CpuLoadData struct {
 	Load_15min float64 `json:"load_15min"`
 }
 
+// HTTP request body (POST)
+// 672 <134>1 2024-04-28T00:03:49+00:00 host app heroku-postgres - source=DATABASE addon=postgresql-defined-24903 sample#current_transaction=122163235 sample#db_size=90755887bytes sample#tables=4 sample#active-connections=15 sample#waiting-connections=0 sample#index-cache-hit-rate=0.99997 sample#table-cache-hit-rate=0.99922 sample#load-avg-1m=0.285 sample#load-avg-5m=0.345 sample#load-avg-15m=0.39 sample#read-iops=0 sample#write-iops=2.597 sample#tmp-disk-used=543633408 sample#tmp-disk-available=72435159040 sample#memory-total=3944484kB sample#memory-free=74980kB sample#memory-cached=2984436kB sample#memory-postgres=33960kB sample#wal-percentage-used=0.06650439708481809
 // Apr 25 01:09:01 ab-cr-pg-logdrain2pgwatch2 app/web.1 [processLogs] heroku-postgres msg body[source=DATABASE addon=postgresql-defined-24903 sample#current_transaction=12298175 sample#db_size=92451631bytes sample#tables=4 sample#active-connections=15 sample#waiting-connections=0 sample#index-cache-hit-rate=0.99999 sample#table-cache-hit-rate=0.99933 sample#load-avg-1m=0.61 sample#load-avg-5m=0.67 sample#load-avg-15m=0.63 sample#read-iops=0 sample#write-iops=0.41772 sample#tmp-disk-used=543633408 sample#tmp-disk-available=72435159040 sample#memory-total=3944484kB sample#memory-free=841168kB sample#memory-cached=2629476kB sample#memory-postgres=20844kB sample#wal-percentage-used=0.06675254510753698
 
 // This is called every time we receive log lines from an app
@@ -140,6 +142,8 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 						_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
 					}
+				} else {
+					fmt.Printf("json.Unmarshal error: %s\n", err)
 				}
 			}
 		}
