@@ -20,3 +20,5 @@ heroku-pg-logdrain-to-pgwatch2-metrics
 
 # Go workspace file
 go.work
+
+.env

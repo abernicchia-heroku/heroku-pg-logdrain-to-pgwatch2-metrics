@@ -10,11 +10,16 @@ import (
 	"os"
 )
 
+const AuthUserEnv string = "AUTH_USER"
+const AuthSecretEnv string = "AUTH_SECRET"
+const PortEnv string = "PORT"
+const SourcesEnv string = "SOURCES"
+
 func main() {
 
-	http.HandleFunc("/log", checkAuth(os.Getenv("AUTH_USER"), os.Getenv("AUTH_SECRET"), processLogs))
+	http.HandleFunc("/log", checkAuth(os.Getenv(AuthUserEnv), os.Getenv(AuthSecretEnv), processLogs))
 	fmt.Println("listening...")
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	err := http.ListenAndServe(":"+os.Getenv(PortEnv), nil)
 	if err != nil {
 		panic(err)
 	}

@@ -2,3 +2,5 @@ github.com/bmizerany/lpx v0.0.0-20130503172629-af85cf24c156 h1:0ywL+47/N2nSZUMM4
 github.com/bmizerany/lpx v0.0.0-20130503172629-af85cf24c156/go.mod h1:sBo9Xky5Lv+sFCp5t1OH7lwY/qRcheGrbjsvb0FdUwM=
 github.com/kr/logfmt v0.0.0-20210122060352-19f9bcb100e6 h1:ZK1mH67KVyVW/zOLu0xLva+f6xJ8vt+LGrkQq5FJYLY=
 github.com/kr/logfmt v0.0.0-20210122060352-19f9bcb100e6/go.mod h1:JIiJcj9TX57tEvCXjm6eaHd2ce4pZZf9wzYuThq45u8=
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
