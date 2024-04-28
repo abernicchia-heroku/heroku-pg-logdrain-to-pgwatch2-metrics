@@ -140,13 +140,11 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 					if monitoreddbname, ok := sourcesMap[rl.source]; ok {
 						//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
-						if isEnv(DebugEnv) {
-							fmt.Printf("found source[%v] monitored db name[%v]\n", rl.source, monitoreddbname)
-						}
+						//if isEnv(DebugEnv) {
+						fmt.Printf("found source[%v] monitored db name[%v]\n", rl.source, monitoreddbname)
+						//}
 
 						_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
-					} else {
-						fmt.Printf("source not found in map %v\n", ok)
 					}
 				} else {
 					fmt.Printf("json.Unmarshal error: %v\n", err)
