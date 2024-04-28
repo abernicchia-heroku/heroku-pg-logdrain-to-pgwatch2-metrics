@@ -133,7 +133,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 				// if source is one of the configured sources then retrieve the related monitored db name used to store metrics
 				//
 				sourcesMap := make(map[string]string)
-				if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &sourcesMap); err != nil {
+				if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &sourcesMap); err == nil {
 					if monitoreddbname, ok := sourcesMap[rl.source]; ok {
 						//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
 						if isEnv(DebugEnv) {
@@ -143,7 +143,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 						_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
 					}
 				} else {
-					fmt.Printf("json.Unmarshal error: %s\n", err)
+					fmt.Printf("json.Unmarshal error: %v\n", err)
 				}
 			}
 		}
