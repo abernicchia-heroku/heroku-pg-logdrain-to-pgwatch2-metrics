@@ -136,7 +136,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 				sourcesMap := make(map[string]string)
 				if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &sourcesMap); err == nil {
-					fmt.Printf("unmarshalled JSON\n")
+					fmt.Printf("unmarshalled JSON %v\n", len(sourcesMap))
 
 					if monitoreddbname, ok := sourcesMap[rl.source]; ok {
 						//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
