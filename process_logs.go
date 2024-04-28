@@ -145,6 +145,8 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 						}
 
 						_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
+					} else {
+						fmt.Printf("source not found in map %v\n", ok)
 					}
 				} else {
 					fmt.Printf("json.Unmarshal error: %v\n", err)
