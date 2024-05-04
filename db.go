@@ -7,6 +7,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -66,13 +67,18 @@ func init() {
 
 	dburl := os.Getenv(MetricsDbUrlEnv) + "?sslmode=require"
 
+	u, err := url.Parse(dburl)
+	if err != nil {
+		fmt.Printf("Invalid metrics DB URL: %v\n", err)
+	}
+
 	if isEnv(DebugEnv) {
-		fmt.Printf("[db.go:init] metrics db url %v\n", dburl)
+		fmt.Printf("[db.go:init] metrics db url %v\n", u.Redacted())
 	}
 
 	db, err = sql.Open("postgres", dburl)
 	if err != nil {
-		fmt.Printf("DB error: %v\n", err)
+		fmt.Printf("Open DB error: %v\n", err)
 	}
 
 	err = db.Ping()

@@ -135,14 +135,6 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 			if err := logfmt.Unmarshal(lp.Bytes(), rl); err != nil {
 				fmt.Printf("Error parsing log line: %v\n", err)
 			} else {
-				/*
-					timeBucket, err := timestamp2Bucket(lp.Header().Time)
-					if err != nil {
-						fmt.Printf("Error parsing time: %v", err)
-						continue
-					}
-				*/
-
 				fmt.Printf("time[%v] source[%v] addon[%v] loadavg1m[%v] loadavg5m[%v] loadavg15m[%v] readiops[%v] writeiops[%v] tmpdiskused[%v] tmpdiskavailable[%v] memorytotal[%v] memoryfree[%v] memorycached[%v] memorypostgres[%v] walpercentageused[%v] \n", /*timeBucket*/
 					string(lp.Header().Time), rl.source, rl.addon, rl.loadavg1m, rl.loadavg5m, rl.loadavg15m, rl.readiops, rl.writeiops, rl.tmpdiskused, rl.tmpdiskavailable, rl.memorytotal, rl.memoryfree, rl.memorycached, rl.memorypostgres, rl.walpercentageused)
 
@@ -155,7 +147,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 				// retrieve from the config {"DATABASE": "PGWATCH2_MONITOREDDB_MYTARGETDB_URL", "DATABASE_ONYX": "PGWATCH2_MONITOREDDB_2_URL", "DATABASE_GREEN": "PGWATCH2_MONITOREDDB_3_URL"}
 				// if source is one of the configured sources then retrieve the related monitored db name used to store metrics
 				//
-				fmt.Printf("looking for source[%v] in [%v]\n", rl.source, os.Getenv(SourcesEnv))
+				fmt.Printf("looking for source[%v] in [%v]\n", rl.source, SourcesMap)
 
 				if monitoreddbname, ok := SourcesMap[rl.source]; ok {
 					//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
@@ -172,10 +164,10 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 						_ = initMetricsTableAndPartitions("cpu_load", t)
 					})
 
+					// TODO: to be removed
 					_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
 
 					_ = insertHerokuPgStatsMetrics(rl, t, monitoreddbname)
-
 				}
 			}
 		}
@@ -187,7 +179,7 @@ func init() {
 	// {"DATABASE": "PGWATCH2_MONITOREDDB_MYTARGETDB_URL", "DATABASE_ONYX": "PGWATCH2_MONITOREDDB_2_URL", "DATABASE_GREEN": "PGWATCH2_MONITOREDDB_3_URL"}
 
 	if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &SourcesMap); err == nil {
-		fmt.Printf("unmarshalled JSON %v\n", len(SourcesMap))
+		fmt.Printf("unmarshalled JSON size: %v data: %v\n", len(SourcesMap), os.Getenv(SourcesEnv))
 
 		for k := range SourcesMap {
 			SourcesOnceMap[k] = new(sync.Once)
@@ -226,6 +218,7 @@ func insertHerokuPgStatsMetrics(rl *herokuPostgresLog, t time.Time, monitoreddbn
 	return nil
 }
 
+// TODO: to be removed
 func insertCpuLoadMetrics(rl *herokuPostgresLog, t time.Time, monitoreddbname string) error {
 	cld := new(CpuLoadData)
 	cld.Load_1min = rl.loadavg1m
