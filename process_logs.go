@@ -166,7 +166,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 					// see sync.Once (https://medium.easyread.co/just-call-your-code-only-once-256f69ed39a8) as this is a multi-threaded app (http server spwans a thread to handle each request) with mutltiple DBs to manage
 					// it's executed only once for each dbname, before metrics are written, this guarantees there are always the metrics table and its partitions ready as dynos are cycled at max every 24h and each partition has a 7d time window.
 					SourcesOnceMap[rl.source].Do(func() {
-						fmt.Printf("create metrics table and partitions if not exists based on metrics timestamp\n")
+						fmt.Printf("create metrics table and partitions if not exists based on metrics timestamp for source %v\n", rl.source)
 						_ = initMetricsTableAndPartitions("heroku_pg_stats", t)
 						// TODO: to be removed
 						_ = initMetricsTableAndPartitions("cpu_load", t)
