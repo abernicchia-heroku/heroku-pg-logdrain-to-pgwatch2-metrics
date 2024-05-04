@@ -17,6 +17,22 @@ const MetricsDbUrlEnv string = "PGWATCH2_URL"
 
 var db *sql.DB
 var cpuLoadInsertStmt *sql.Stmt
+var herokuPgStatsInsertStmt *sql.Stmt
+var initMetricsTableAndPartitionsSelectStmt *sql.Stmt
+
+func herokuPgStatsInsert(time time.Time, dbname string, data []byte) error {
+	//fmt.Printf("herokuPgStatsInsert INSERT into heroku_pg_stats(time, dbname, data) VALUES (%v, %v, %v);\n", time, dbname, string(data))
+
+	_, err := herokuPgStatsInsertStmt.Exec(
+		time,
+		dbname,
+		data)
+	if err != nil {
+		fmt.Printf("DB error: %v\n", err)
+	}
+
+	return err
+}
 
 func cpuLoadInsert(time time.Time, dbname string, data []byte) error {
 	//fmt.Printf("CpuLoadInsert INSERT into cpu_load(time, dbname, data) VALUES (%v, %v, %v);\n", time, dbname, string(data))
@@ -25,6 +41,18 @@ func cpuLoadInsert(time time.Time, dbname string, data []byte) error {
 		time,
 		dbname,
 		data)
+	if err != nil {
+		fmt.Printf("DB error: %v\n", err)
+	}
+
+	return err
+}
+
+func initMetricsTableAndPartitions(metricname string, time time.Time) error {
+
+	_, err := initMetricsTableAndPartitionsSelectStmt.Exec(
+		metricname,
+		time)
 	if err != nil {
 		fmt.Printf("DB error: %v\n", err)
 	}
@@ -56,4 +84,27 @@ func init() {
 	if err != nil {
 		fmt.Printf("Unable to create prepared stmt: %v\n", err)
 	}
+
+	herokuPgStatsInsertStmt, err = db.Prepare("INSERT into heroku_pg_stats(time, dbname, data) VALUES ($1, $2, $3);")
+	if err != nil {
+		fmt.Printf("Unable to create prepared stmt: %v\n", err)
+	}
+
+	// The 3rd param ensures that there are always 2 partitions and that a new partition is created when the metric time is within the last partition
+	// for example, these are the current partitions:
+	// Partitions: subpartitions.cpu_load_y2024w17 FOR VALUES FROM ('2024-04-22 00:00:00+00') TO ('2024-04-29 00:00:00+00'),
+	// 			   subpartitions.cpu_load_y2024w18 FOR VALUES FROM ('2024-04-29 00:00:00+00') TO ('2024-05-06 00:00:00+00')
+	//
+	// it's 2024-04-30 and calling the admin.ensure_partition_metric_time() it will create the following partition
+	//
+	// Partitions: subpartitions.cpu_load_y2024w17 FOR VALUES FROM ('2024-04-22 00:00:00+00') TO ('2024-04-29 00:00:00+00'),
+	// 			   subpartitions.cpu_load_y2024w18 FOR VALUES FROM ('2024-04-29 00:00:00+00') TO ('2024-05-06 00:00:00+00'),
+	// 			   subpartitions.cpu_load_y2024w19 FOR VALUES FROM ('2024-05-06 00:00:00+00') TO ('2024-05-13 00:00:00+00')
+	//
+	// select * from admin.ensure_partition_metric_time($1 ==> metric name 'cpu_load', $2 ==> now(), $3 ==> 1)
+	initMetricsTableAndPartitionsSelectStmt, err = db.Prepare("select * from admin.ensure_partition_metric_time($1,$2, 1);")
+	if err != nil {
+		fmt.Printf("Unable to create prepared stmt: %v\n", err)
+	}
+
 }

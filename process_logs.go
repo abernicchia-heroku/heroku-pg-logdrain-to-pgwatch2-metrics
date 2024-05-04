@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bmizerany/lpx"
@@ -17,6 +18,9 @@ import (
 
 const DebugEnv string = "HKPG_LOGDRAIN_DEBUG"
 const PostgresProcId string = "heroku-postgres"
+
+var SourcesMap = make(map[string]string)
+var SourcesOnceMap = make(map[string]*sync.Once)
 
 // This struct and the method below takes care of capturing the data we need
 // from each log line. We pass it to Keith Rarick's logfmt parser and it
@@ -48,29 +52,29 @@ func (r *herokuPostgresLog) HandleLogfmt(key, val []byte) error {
 		r.source = string(val)
 	} else if string(key) == "addon" {
 		r.addon = string(val)
-	} else if string(key) == "sample#load-avg-1m" {
+	} else if string(key) == "sample#load-avg-1m" { // cpu_load
 		r.loadavg1m, _ = strconv.ParseFloat(string(val), 64)
-	} else if string(key) == "sample#load-avg-5m" {
+	} else if string(key) == "sample#load-avg-5m" { // cpu_load
 		r.loadavg5m, _ = strconv.ParseFloat(string(val), 64)
-	} else if string(key) == "sample#load-avg-15m" {
+	} else if string(key) == "sample#load-avg-15m" { // cpu_load
 		r.loadavg15m, _ = strconv.ParseFloat(string(val), 64)
-	} else if string(key) == "sample#read-iops" {
+	} else if string(key) == "sample#read-iops" { // heroku_pg_stats
 		r.readiops, _ = strconv.ParseFloat(string(val), 64)
-	} else if string(key) == "sample#write-iops" {
+	} else if string(key) == "sample#write-iops" { // heroku_pg_stats
 		r.writeiops, _ = strconv.ParseFloat(string(val), 64)
-	} else if string(key) == "sample#tmp-disk-used" {
+	} else if string(key) == "sample#tmp-disk-used" { // heroku_pg_stats
 		r.tmpdiskused, _ = strconv.ParseInt(string(val), 10, 64)
-	} else if string(key) == "sample#tmp-disk-available" {
+	} else if string(key) == "sample#tmp-disk-available" { // heroku_pg_stats
 		r.tmpdiskavailable, _ = strconv.ParseInt(string(val), 10, 64)
-	} else if string(key) == "sample#memory-total" { // kB
+	} else if string(key) == "sample#memory-total" { // kB // heroku_pg_stats
 		r.memorytotal, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
-	} else if string(key) == "sample#memory-free" { // kB
+	} else if string(key) == "sample#memory-free" { // kB // heroku_pg_stats
 		r.memoryfree, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
-	} else if string(key) == "sample#memory-cached" { // kB
+	} else if string(key) == "sample#memory-cached" { // kB // heroku_pg_stats
 		r.memorycached, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
-	} else if string(key) == "sample#memory-postgres" { // kB
+	} else if string(key) == "sample#memory-postgres" { // kB // heroku_pg_stats
 		r.memorypostgres, _ = strconv.ParseInt(strings.TrimSuffix(string(val), "kB"), 10, 64)
-	} else if string(key) == "sample#wal-percentage-used" {
+	} else if string(key) == "sample#wal-percentage-used" { // heroku_pg_stats
 		r.walpercentageused, _ = strconv.ParseFloat(string(val), 64)
 	}
 	return nil
@@ -80,6 +84,25 @@ type CpuLoadData struct {
 	Load_1min  float64 `json:"load_1min"`
 	Load_5min  float64 `json:"load_5min"`
 	Load_15min float64 `json:"load_15min"`
+}
+
+type HerokuPgStatsData struct {
+	Load_1min  float64 `json:"load_1min"`
+	Load_5min  float64 `json:"load_5min"`
+	Load_15min float64 `json:"load_15min"`
+
+	Readiops  float64 `json:"readiops"`
+	Writeiops float64 `json:"writeiops"`
+
+	Tmpdiskused      int64 `json:"tmpdiskused"`
+	Tmpdiskavailable int64 `json:"tmpdiskavailable"`
+
+	Memorytotal    int64 `json:"memorytotal"`
+	Memoryfree     int64 `json:"memoryfree"`
+	Memorycached   int64 `json:"memorycached"`
+	Memorypostgres int64 `json:"memorypostgres"`
+
+	Walpercentageused float64 `json:"walpercentageused"`
 }
 
 // HTTP request body (POST)
@@ -134,25 +157,86 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 				//
 				fmt.Printf("looking for source[%v] in [%v]\n", rl.source, os.Getenv(SourcesEnv))
 
-				sourcesMap := make(map[string]string)
-				if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &sourcesMap); err == nil {
-					fmt.Printf("unmarshalled JSON %v\n", len(sourcesMap))
+				if monitoreddbname, ok := SourcesMap[rl.source]; ok {
+					//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
+					//if isEnv(DebugEnv) {
+					fmt.Printf("found source[%v] monitored db name[%v]\n", rl.source, monitoreddbname)
+					//}
 
-					if monitoreddbname, ok := sourcesMap[rl.source]; ok {
-						//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
-						//if isEnv(DebugEnv) {
-						fmt.Printf("found source[%v] monitored db name[%v]\n", rl.source, monitoreddbname)
-						//}
+					// see sync.Once (https://medium.easyread.co/just-call-your-code-only-once-256f69ed39a8) as this is a multi-threaded app (http server spwans a thread to handle each request) with mutltiple DBs to manage
 
-						_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
-					}
-				} else {
-					fmt.Printf("json.Unmarshal error: %v\n", err)
+					// it's executed only once for each dbname, before the metrics are written, this guarantees there are always the metrics table and its partitions ready as dynos are cycled at max every 24h and each partition has a 7d time window.
+					// The 3rd param ensures that there are always 2 partitions and that a new partition is created when the metric time is within the last partition
+					// for example, these are the current partitions:
+					// Partitions: subpartitions.cpu_load_y2024w17 FOR VALUES FROM ('2024-04-22 00:00:00+00') TO ('2024-04-29 00:00:00+00'),
+					// 			   subpartitions.cpu_load_y2024w18 FOR VALUES FROM ('2024-04-29 00:00:00+00') TO ('2024-05-06 00:00:00+00')
+					//
+					// it's 2024-04-30 and calling the admin.ensure_partition_metric_time() it will create the following partition
+					//
+					// Partitions: subpartitions.cpu_load_y2024w17 FOR VALUES FROM ('2024-04-22 00:00:00+00') TO ('2024-04-29 00:00:00+00'),
+					// 			   subpartitions.cpu_load_y2024w18 FOR VALUES FROM ('2024-04-29 00:00:00+00') TO ('2024-05-06 00:00:00+00'),
+					// 			   subpartitions.cpu_load_y2024w19 FOR VALUES FROM ('2024-05-06 00:00:00+00') TO ('2024-05-13 00:00:00+00')
+					//
+
+					SourcesOnceMap[rl.source].Do(func() {
+						fmt.Printf("create metrics table and partitions if not exists based on metrics timestamp\n")
+						_ = initMetricsTableAndPartitions("heroku_pg_stats", t)
+						// TODO: to be removed
+						_ = initMetricsTableAndPartitions("cpu_load", t)
+					})
+
+					_ = insertCpuLoadMetrics(rl, t, monitoreddbname)
+
+					_ = insertHerokuPgStatsMetrics(rl, t, monitoreddbname)
+
 				}
 			}
 		}
 	}
 
+}
+
+func init() {
+	// {"DATABASE": "PGWATCH2_MONITOREDDB_MYTARGETDB_URL", "DATABASE_ONYX": "PGWATCH2_MONITOREDDB_2_URL", "DATABASE_GREEN": "PGWATCH2_MONITOREDDB_3_URL"}
+
+	if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &SourcesMap); err == nil {
+		fmt.Printf("unmarshalled JSON %v\n", len(SourcesMap))
+
+		for k := range SourcesMap {
+			SourcesOnceMap[k] = new(sync.Once)
+		}
+	} else {
+		fmt.Printf("json.Unmarshal error: %v\n", err)
+	}
+}
+
+func insertHerokuPgStatsMetrics(rl *herokuPostgresLog, t time.Time, monitoreddbname string) error {
+	hpsd := new(HerokuPgStatsData)
+	hpsd.Load_1min = rl.loadavg1m
+	hpsd.Load_5min = rl.loadavg5m
+	hpsd.Load_15min = rl.loadavg15m
+
+	hpsd.Readiops = rl.readiops
+	hpsd.Writeiops = rl.writeiops
+
+	hpsd.Tmpdiskused = rl.tmpdiskused
+	hpsd.Tmpdiskavailable = rl.tmpdiskavailable
+
+	hpsd.Memorytotal = rl.memorytotal
+	hpsd.Memoryfree = rl.memoryfree
+	hpsd.Memorycached = rl.memorycached
+	hpsd.Memorypostgres = rl.memorypostgres
+
+	hpsd.Walpercentageused = rl.walpercentageused
+
+	jsonData, err := json.Marshal(hpsd)
+	if err != nil {
+		fmt.Printf("could not marshal json: %s\n", err)
+		return err
+	}
+
+	herokuPgStatsInsert(t, monitoreddbname, jsonData)
+	return nil
 }
 
 func insertCpuLoadMetrics(rl *herokuPostgresLog, t time.Time, monitoreddbname string) error {

@@ -21,7 +21,7 @@ const SourcesEnv string = "SOURCES"
 func main() {
 
 	http.HandleFunc("/log", checkAuth(os.Getenv(AuthUserEnv), os.Getenv(AuthSecretEnv), processLogs))
-	fmt.Printf("listening PORT[%v] ...", os.Getenv(PortEnv))
+	fmt.Printf("listening PORT[%v] ...\n", os.Getenv(PortEnv))
 	err := http.ListenAndServe(":"+os.Getenv(PortEnv), nil)
 	if err != nil {
 		panic(err)
