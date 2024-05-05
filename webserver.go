@@ -24,7 +24,9 @@ const SourcesEnv string = "SOURCES"
 
 func main() {
 	var srv http.Server
+	srv.Addr = ":" + os.Getenv(PortEnv)
 
+	// Catching signals in a goroutine so that it won't block and wait for all the http Server connections are closed before exiting
 	idleConnsClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)
@@ -41,10 +43,9 @@ func main() {
 		close(idleConnsClosed)
 	}()
 
-	// Initializing the http server in a goroutine so that it won't block then it's possible to handle the graceful shutdown
 	http.HandleFunc("/log", checkAuth(os.Getenv(AuthUserEnv), os.Getenv(AuthSecretEnv), processLogs))
 	fmt.Printf("listening on PORT[%v] ...\n", os.Getenv(PortEnv))
-	err := http.ListenAndServe(":"+os.Getenv(PortEnv), nil)
+	err := srv.ListenAndServe()
 	if err != nil {
 		panic(err)
 	}
