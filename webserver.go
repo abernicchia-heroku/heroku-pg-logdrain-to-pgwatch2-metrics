@@ -46,7 +46,7 @@ func main() {
 
 	// defautl handlefunc used by srv.ListenAndServe() below
 	http.HandleFunc("/log", checkAuth(os.Getenv(AuthUserEnv), os.Getenv(AuthSecretEnv), processLogs))
-	fmt.Printf("listening on PORT[%v] ...\n", os.Getenv(PortEnv))
+	fmt.Printf("Listening on PORT[%v] ...\n", os.Getenv(PortEnv))
 	err := srv.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)

@@ -114,9 +114,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 	if isEnv(DebugEnv) {
 		bodyBytes, _ := io.ReadAll(r.Body)
-		if isEnv(DebugEnv) {
-			fmt.Printf("[processLogs] HTTP request received %v\n", string(bodyBytes))
-		}
+		fmt.Printf("[processLogs] HTTP request received %v\n", string(bodyBytes))
 	}
 
 	lp := lpx.NewReader(bufio.NewReader(r.Body))
@@ -177,7 +175,6 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 }
 
 func init() {
