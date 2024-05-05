@@ -1,13 +1,17 @@
 // reference(s):
-// https://github.com/jesperfj/heroku-log-drain-sample
-// https://github.com/heroku/sql-drain
+// 	https://github.com/jesperfj/heroku-log-drain-sample
+// 	https://github.com/heroku/sql-drain
+// 	https://pkg.go.dev/net/http#Server.Shutdown
 
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 // POST sample
@@ -19,13 +23,35 @@ const PortEnv string = "PORT"
 const SourcesEnv string = "SOURCES"
 
 func main() {
+	var srv http.Server
 
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM)
+		<-sigint
+
+		fmt.Printf("Received SIGINT/SIGTERM, shutting down ...\n")
+
+		// We received an interrupt signal, shut down.
+		if err := srv.Shutdown(context.Background()); err != nil {
+			// Error from closing listeners, or context timeout:
+			fmt.Printf("Error while shutting down %v\n", err)
+		}
+		close(idleConnsClosed)
+	}()
+
+	// Initializing the http server in a goroutine so that it won't block then it's possible to handle the graceful shutdown
 	http.HandleFunc("/log", checkAuth(os.Getenv(AuthUserEnv), os.Getenv(AuthSecretEnv), processLogs))
 	fmt.Printf("listening on PORT[%v] ...\n", os.Getenv(PortEnv))
 	err := http.ListenAndServe(":"+os.Getenv(PortEnv), nil)
 	if err != nil {
 		panic(err)
 	}
+
+	<-idleConnsClosed
+
+	fmt.Printf("Exiting ...\n")
 }
 
 func checkAuth(correctUser string, correctPass string, pass http.HandlerFunc) http.HandlerFunc {

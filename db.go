@@ -22,8 +22,6 @@ var herokuPgStatsInsertStmt *sql.Stmt
 var initMetricsTableAndPartitionsSelectStmt *sql.Stmt
 
 func herokuPgStatsInsert(time time.Time, dbname string, data []byte) error {
-	//fmt.Printf("herokuPgStatsInsert INSERT into heroku_pg_stats(time, dbname, data) VALUES (%v, %v, %v);\n", time, dbname, string(data))
-
 	_, err := herokuPgStatsInsertStmt.Exec(
 		time,
 		dbname,
@@ -36,8 +34,6 @@ func herokuPgStatsInsert(time time.Time, dbname string, data []byte) error {
 }
 
 func cpuLoadInsert(time time.Time, dbname string, data []byte) error {
-	//fmt.Printf("CpuLoadInsert INSERT into cpu_load(time, dbname, data) VALUES (%v, %v, %v);\n", time, dbname, string(data))
-
 	_, err := cpuLoadInsertStmt.Exec(
 		time,
 		dbname,
@@ -50,7 +46,6 @@ func cpuLoadInsert(time time.Time, dbname string, data []byte) error {
 }
 
 func initMetricsTableAndPartitions(metricname string, time time.Time) error {
-
 	_, err := initMetricsTableAndPartitionsSelectStmt.Exec(
 		metricname,
 		time)

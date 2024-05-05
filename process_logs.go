@@ -122,8 +122,7 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 	for lp.Next() {
 
 		if isEnv(DebugEnv) {
-			mytimeBucket, _ := timestamp2Bucket(lp.Header().Time)
-			fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", string(lp.Header().PrivalVersion), mytimeBucket, string(lp.Header().Hostname), string(lp.Header().Name), string(lp.Header().Procid), string(lp.Header().Msgid))
+			fmt.Printf("[processLogs] PrivalVersion[%v] Time[%v] Hostname[%v] Name[%v] Procid[%v] Msgid[%v]\n", string(lp.Header().PrivalVersion), string(lp.Header().Time), string(lp.Header().Hostname), string(lp.Header().Name), string(lp.Header().Procid), string(lp.Header().Msgid))
 		}
 
 		// we only care about logs from the heroku-postgres
@@ -238,14 +237,6 @@ func insertCpuLoadMetrics(rl *herokuPostgresLog, t time.Time, monitoreddbname st
 // Heroku log lines are formatted according to RFC5424 which is a subset
 // of RFC3339 (RFC5424 is more restrictive).
 // Reference: https://devcenter.heroku.com/articles/logging#log-format
-func timestamp2Bucket(b []byte) (int64, error) {
-	t, err := time.Parse(time.RFC3339, string(b))
-	if err != nil {
-		return 0, err
-	}
-	return (t.Unix() / 60) * 60, nil
-}
-
 func timestamp2Time(b []byte) (time.Time, error) {
 	t, err := time.Parse(time.RFC3339, string(b))
 	if err != nil {
@@ -260,9 +251,3 @@ func isEnv(key string) bool {
 	}
 	return false
 }
-
-// CREATE TABLE public.mycpu_load (
-// 	time timestamp with time zone,
-// 	dbname text,
-// 	data jsonb
-//   );
