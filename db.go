@@ -107,5 +107,4 @@ func init() {
 	if err != nil {
 		fmt.Printf("Unable to create prepared stmt: %v\n", err)
 	}
-
 }
