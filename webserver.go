@@ -44,6 +44,7 @@ func main() {
 		close(idleConnsClosed)
 	}()
 
+	// defautl handlefunc used by srv.ListenAndServe() below
 	http.HandleFunc("/log", checkAuth(os.Getenv(AuthUserEnv), os.Getenv(AuthSecretEnv), processLogs))
 	fmt.Printf("listening on PORT[%v] ...\n", os.Getenv(PortEnv))
 	err := srv.ListenAndServe()

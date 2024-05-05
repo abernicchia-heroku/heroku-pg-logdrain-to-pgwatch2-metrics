@@ -151,7 +151,9 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 				// retrieve from the config {"DATABASE": "PGWATCH2_MONITOREDDB_MYTARGETDB_URL", "DATABASE_ONYX": "PGWATCH2_MONITOREDDB_2_URL", "DATABASE_GREEN": "PGWATCH2_MONITOREDDB_3_URL"}
 				// if source is one of the configured sources then retrieve the related monitored db name used to store metrics
 				//
-				fmt.Printf("looking for source[%v] in [%v]\n", rl.source, SourcesMap)
+				if isEnv(DebugEnv) {
+					fmt.Printf("looking for source[%v] in [%v]\n", rl.source, SourcesMap)
+				}
 
 				if monitoreddbname, ok := SourcesMap[rl.source]; ok {
 					if isEnv(DebugEnv) {
