@@ -54,7 +54,7 @@ func main() {
 
 	<-idleConnsClosed
 
-	fmt.Printf("Exiting ...\n")
+	fmt.Printf("... exiting\n")
 }
 
 func checkAuth(correctUser string, correctPass string, pass http.HandlerFunc) http.HandlerFunc {
