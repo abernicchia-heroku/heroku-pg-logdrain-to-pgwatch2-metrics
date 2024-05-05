@@ -114,7 +114,9 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 	if isEnv(DebugEnv) {
 		bodyBytes, _ := io.ReadAll(r.Body)
-		fmt.Printf("[processLogs] HTTP request received %v\n", string(bodyBytes))
+		if isEnv(DebugEnv) {
+			fmt.Printf("[processLogs] HTTP request received %v\n", string(bodyBytes))
+		}
 	}
 
 	lp := lpx.NewReader(bufio.NewReader(r.Body))
@@ -127,15 +129,18 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 
 		// we only care about logs from the heroku-postgres
 		if string(lp.Header().Procid) == PostgresProcId {
-
-			fmt.Printf("[processLogs] heroku-postgres msg body[%v]\n", strings.TrimSuffix(string(lp.Bytes()), "\n"))
+			if isEnv(DebugEnv) {
+				fmt.Printf("[processLogs] heroku-postgres msg body[%v]\n", strings.TrimSuffix(string(lp.Bytes()), "\n"))
+			}
 
 			rl := new(herokuPostgresLog)
 			if err := logfmt.Unmarshal(lp.Bytes(), rl); err != nil {
 				fmt.Printf("Error parsing log line: %v\n", err)
 			} else {
-				fmt.Printf("time[%v] source[%v] addon[%v] loadavg1m[%v] loadavg5m[%v] loadavg15m[%v] readiops[%v] writeiops[%v] tmpdiskused[%v] tmpdiskavailable[%v] memorytotal[%v] memoryfree[%v] memorycached[%v] memorypostgres[%v] walpercentageused[%v] \n", /*timeBucket*/
-					string(lp.Header().Time), rl.source, rl.addon, rl.loadavg1m, rl.loadavg5m, rl.loadavg15m, rl.readiops, rl.writeiops, rl.tmpdiskused, rl.tmpdiskavailable, rl.memorytotal, rl.memoryfree, rl.memorycached, rl.memorypostgres, rl.walpercentageused)
+				if isEnv(DebugEnv) {
+					fmt.Printf("time[%v] source[%v] addon[%v] loadavg1m[%v] loadavg5m[%v] loadavg15m[%v] readiops[%v] writeiops[%v] tmpdiskused[%v] tmpdiskavailable[%v] memorytotal[%v] memoryfree[%v] memorycached[%v] memorypostgres[%v] walpercentageused[%v] \n", /*timeBucket*/
+						string(lp.Header().Time), rl.source, rl.addon, rl.loadavg1m, rl.loadavg5m, rl.loadavg15m, rl.readiops, rl.writeiops, rl.tmpdiskused, rl.tmpdiskavailable, rl.memorytotal, rl.memoryfree, rl.memorycached, rl.memorypostgres, rl.walpercentageused)
+				}
 
 				t, err := timestamp2Time(lp.Header().Time)
 				if err != nil {
@@ -149,10 +154,9 @@ func processLogs(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("looking for source[%v] in [%v]\n", rl.source, SourcesMap)
 
 				if monitoreddbname, ok := SourcesMap[rl.source]; ok {
-					//var monitoreddbname = "PGWATCH2_MONITOREDDB_MYTARGETDB_URL"
-					//if isEnv(DebugEnv) {
-					fmt.Printf("found source[%v] monitored db name[%v]\n", rl.source, monitoreddbname)
-					//}
+					if isEnv(DebugEnv) {
+						fmt.Printf("found source[%v] monitored db name[%v]\n", rl.source, monitoreddbname)
+					}
 
 					// see sync.Once (https://medium.easyread.co/just-call-your-code-only-once-256f69ed39a8) as this is a multi-threaded app (http server spwans a thread to handle each request) with mutltiple DBs to manage
 					// it's executed only once for each dbname, before metrics are written, this guarantees there are always the metrics table and its partitions ready as dynos are cycled at max every 24h and each partition has a 7d time window.
@@ -178,7 +182,9 @@ func init() {
 	// {"DATABASE": "PGWATCH2_MONITOREDDB_MYTARGETDB_URL", "DATABASE_ONYX": "PGWATCH2_MONITOREDDB_2_URL", "DATABASE_GREEN": "PGWATCH2_MONITOREDDB_3_URL"}
 
 	if err := json.Unmarshal([]byte(os.Getenv(SourcesEnv)), &SourcesMap); err == nil {
-		fmt.Printf("unmarshalled JSON size: %v data: %v\n", len(SourcesMap), os.Getenv(SourcesEnv))
+		if isEnv(DebugEnv) {
+			fmt.Printf("unmarshalled JSON size: %v data: %v\n", len(SourcesMap), os.Getenv(SourcesEnv))
+		}
 
 		for k := range SourcesMap {
 			SourcesOnceMap[k] = new(sync.Once)
